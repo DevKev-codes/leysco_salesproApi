@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\DashboardController;
 use App\Http\Controllers\Api\V1\ProductController;
 use App\Http\Controllers\Api\V1\OrderController;
+use App\Http\Controllers\Api\V1\NotificationController;
 use App\Http\Controllers\V1\CustomerController;
 use App\Http\Controllers\V1\WarehouseController;
 
@@ -71,11 +72,22 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'log.api'])->group(function () 
 
 
 
-   
+   //Warehouses
 
     Route::prefix('v1')->middleware(['auth:sanctum', 'log.api'])->group(function () {
          Route::get('warehouses', [WarehouseController::class, 'index']);
          Route::get('warehouses/{id}/inventory', [WarehouseController::class, 'inventory']);
+});
+
+//Notification
+Route::prefix('v1')->middleware(['auth:sanctum', 'log.api'])->group(function () {
+    Route::prefix('notifications')->group(function () {
+        Route::get('/', [NotificationController::class, 'index']);
+        Route::put('{id}/read', [NotificationController::class, 'markAsRead']);
+        Route::put('read-all', [NotificationController::class, 'markAllAsRead']);
+        Route::delete('{id}', [NotificationController::class, 'destroy']);
+        Route::get('unread-count', [NotificationController::class, 'unreadCount']);
+    });
 });
 
 });
