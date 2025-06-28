@@ -1,0 +1,14 @@
+[
+  {
+    "id": 1,
+    "customer_email": "info@quickautoservices.co.ke",
+    "order_number": "ORD-20250628001",
+    "status": "confirmed",
+    "subtotal": 14400.00,
+    "discount": 0.00,
+    "tax": 2304.00,
+    "total": 16704.00,
+    "created_at": "2025-06-28 12:00:00",
+    "updated_at": "2025-06-28 12:00:00"
+  }
+]

@@ -1,0 +1,20 @@
+[
+  {
+    "sku": "SF-MAX-20W50",
+    "warehouse_code": "NCW",
+    "stock_quantity": 60,
+    "reserved_quantity": 5
+  },
+  {
+    "sku": "SF-MAX-20W50",
+    "warehouse_code": "MRW",
+    "stock_quantity": 40,
+    "reserved_quantity": 2
+  },
+  {
+    "sku": "ED-SYN-5W30",
+    "warehouse_code": "NCW",
+    "stock_quantity": 90,
+    "reserved_quantity": 10
+  }
+]

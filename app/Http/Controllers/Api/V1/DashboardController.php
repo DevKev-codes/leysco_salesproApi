@@ -5,98 +5,129 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
-use App\Models\Order;
-use App\Models\Product;
-use App\Models\OrderItem;
 
 class DashboardController extends Controller
 {
-    public function summary(Request $request)
+    // Common date range processor
+    protected function getDateRange(Request $request)
     {
-        $range = $request->query('range', 'month'); // default: current month
-        $cacheKey = "dashboard_summary_{$range}";
-
-        return Cache::remember($cacheKey, now()->addMinutes(10), function () use ($range) {
-            [$start, $end] = $this->getDateRange($range);
-
-            $orders = Order::whereBetween('created_at', [$start, $end])->get();
-
-            $totalSales = $orders->sum('total_amount');
-            $orderCount = $orders->count();
-            $avgOrderValue = $orderCount ? $totalSales / $orderCount : 0;
-            $inventoryTurnover = $this->calculateInventoryTurnover($start, $end);
-
-            return response()->json([
-                'total_sales' => round($totalSales, 2),
-                'orders' => $orderCount,
-                'average_order_value' => round($avgOrderValue, 2),
-                'inventory_turnover_rate' => round($inventoryTurnover, 2),
-            ], 200);
-        });
-    }
-
-    public function salesPerformance(Request $request)
-    {
-        $range = $request->query('range', 'month');
-        [$start, $end] = $this->getDateRange($range);
-
-        $sales = Order::whereBetween('created_at', [$start, $end])
-            ->selectRaw('DATE(created_at) as date, SUM(total_amount) as total')
-            ->groupBy('date')
-            ->orderBy('date')
-            ->get();
-
-        return response()->json($sales, 200);
-    }
-
-    public function inventoryStatus()
-    {
-        return Cache::remember('inventory_status', now()->addMinutes(15), function () {
-            return response()->json(
-                Product::selectRaw('category, COUNT(*) as items, SUM(stock) as total_stock')
-                    ->groupBy('category')
-                    ->get(), 200
-            );
-        });
-    }
-
-    public function topProducts()
-    {
-        return Cache::remember('top_products', now()->addMinutes(10), function () {
-            $top = OrderItem::with('product')
-                ->selectRaw('product_id, SUM(quantity) as total_sold')
-                ->groupBy('product_id')
-                ->orderByDesc('total_sold')
-                ->take(5)
-                ->get();
-
-            return response()->json($top, 200);
-        });
-    }
-
-    private function getDateRange($range)
-    {
-        $today = now();
-
+        $range = $request->input('range', 'today');
+        
         return match ($range) {
-            'today'   => [Carbon::today(), Carbon::today()->endOfDay()],
-            'week'    => [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()],
-            'month'   => [Carbon::now()->startOfMonth(), Carbon::now()->endOfMonth()],
+            'today' => [Carbon::today(), Carbon::now()],
+            'week' => [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()],
+            'month' => [Carbon::now()->startOfMonth(), Carbon::now()->endOfMonth()],
             'quarter' => [Carbon::now()->startOfQuarter(), Carbon::now()->endOfQuarter()],
-            'year'    => [Carbon::now()->startOfYear(), Carbon::now()->endOfYear()],
-            default   => [Carbon::now()->startOfMonth(), Carbon::now()->endOfMonth()],
+            'year' => [Carbon::now()->startOfYear(), Carbon::now()->endOfYear()],
+            default => [
+                Carbon::parse($request->input('from', Carbon::today())),
+                Carbon::parse($request->input('to', Carbon::now()))
+            ],
         };
     }
 
-    private function calculateInventoryTurnover($start, $end)
+    // Overall sales metrics
+    public function summary(Request $request)
     {
-        $costOfGoodsSold = OrderItem::whereBetween('created_at', [$start, $end])
-            ->join('products', 'order_items.product_id', '=', 'products.id')
-            ->sum(\DB::raw('order_items.quantity * products.cost_price'));
+        $cacheKey = 'dashboard_summary_' . $request->input('range', 'today');
+        
+        return Cache::remember($cacheKey, now()->addMinutes(15), function () use ($request) {
+            [$startDate, $endDate] = $this->getDateRange($request);
+            
+            $result = DB::table('orders')
+                ->selectRaw('SUM(total_amount) as total_sales')
+                ->selectRaw('COUNT(*) as total_orders')
+                ->selectRaw('SUM(total_amount)/COUNT(*) as average_order_value')
+                ->whereBetween('created_at', [$startDate, $endDate])
+                ->where('status', 'completed')
+                ->first();
+            
+            return response()->json([
+                'total_sales' => $result->total_sales ?? 0,
+                'total_orders' => $result->total_orders ?? 0,
+                'average_order_value' => $result->average_order_value ?? 0,
+                'timeframe' => [
+                    'start' => $startDate->toDateTimeString(),
+                    'end' => $endDate->toDateTimeString()
+                ]
+            ]);
+        });
+    }
 
-        $avgInventory = Product::avg('stock');
+    // Sales performance data
+    public function salesPerformance(Request $request)
+    {
+        $cacheKey = 'sales_performance_' . $request->input('range', 'month');
+        
+        return Cache::remember($cacheKey, now()->addMinutes(30), function () use ($request) {
+            [$startDate, $endDate] = $this->getDateRange($request);
+            
+            $salesData = DB::table('orders')
+                ->select(
+                    DB::raw('DATE(created_at) as date'),
+                    DB::raw('SUM(total_amount) as total_sales'),
+                    DB::raw('COUNT(*) as order_count')
+                )
+                ->whereBetween('created_at', [$startDate, $endDate])
+                ->where('status', 'completed')
+                ->groupBy('date')
+                ->orderBy('date')
+                ->get();
+            
+            return response()->json([
+                'data' => $salesData,
+                'timeframe' => [
+                    'start' => $startDate->toDateTimeString(),
+                    'end' => $endDate->toDateTimeString()
+                ]
+            ]);
+        });
+    }
 
-        return $avgInventory > 0 ? $costOfGoodsSold / $avgInventory : 0;
+    // Inventory status
+    public function inventoryStatus()
+    {
+        return Cache::remember('inventory_status', now()->addHour(), function () {
+            $inventory = DB::table('products')
+                ->join('categories', 'products.category_id', '=', 'categories.id')
+                ->select(
+                    'categories.name as category',
+                    DB::raw('SUM(products.quantity) as total_quantity'),
+                    DB::raw('COUNT(products.id) as product_count'),
+                    DB::raw('SUM(products.quantity * products.price) as inventory_value')
+                )
+                ->groupBy('categories.name')
+                ->get();
+            
+            return response()->json($inventory);
+        });
+    }
+
+    // Top products
+    public function topProducts(Request $request)
+    {
+        $cacheKey = 'top_products_' . $request->input('range', 'month');
+        
+        return Cache::remember($cacheKey, now()->addMinutes(15), function () use ($request) {
+            [$startDate, $endDate] = $this->getDateRange($request);
+            
+            $topProducts = DB::table('order_items')
+                ->join('products', 'order_items.product_id', '=', 'products.id')
+                ->select(
+                    'products.name',
+                    'products.sku',
+                    DB::raw('SUM(order_items.quantity) as total_sold'),
+                    DB::raw('SUM(order_items.quantity * order_items.price) as revenue')
+                )
+                ->whereBetween('order_items.created_at', [$startDate, $endDate])
+                ->groupBy('products.id', 'products.name', 'products.sku')
+                ->orderByDesc('total_sold')
+                ->limit(5)
+                ->get();
+            
+            return response()->json($topProducts);
+        });
     }
 }

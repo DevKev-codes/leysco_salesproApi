@@ -1,18 +1,23 @@
 <?php
 
+
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
 {
-    /**
-     * Seed the application's database.
-     */
-    public function run(): void
+    public function run()
     {
-        // Call your custom JSON-based seeder
-        $this->call(JSONSeeder::class);
+        $this->call([
+            UserSeeder::class,
+            ProductSeeder::class,
+            CustomerSeeder::class,
+            WarehouseSeeder::class,
+            InventorySeeder::class,
+            OrderSeeder::class,
+            OrderItemSeeder::class,
+           
+        ]);
     }
 }
-

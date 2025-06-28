@@ -7,7 +7,7 @@ use App\Http\Middleware\LogApiActivity;
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\DashboardController;
 use App\Http\Controllers\Api\V1\ProductController;
-use App\Http\Controllers\Api\V1\ProductStockController;
+use App\Http\Controllers\Api\V1\OrderController;
      //Authorization
 Route::prefix('v1')->group(function () {
     Route::prefix('auth')->group(function () {
@@ -29,20 +29,26 @@ Route::prefix('v1')->group(function () {
         Route::get('top-products', [DashboardController::class, 'topProducts']);
     });
 });
+       //Products
+Route::apiResource('products', ProductController::class)
+    ->except(['create', 'edit']);
 
-Route::prefix('v1')->middleware(['auth:sanctum', LogApiActivity::class])->group(function () {
-    Route::prefix('products')->group(function () {
-        Route::get('/', [ProductController::class, 'index']); // List with filters/search
-        Route::post('/', [ProductController::class, 'store'])->middleware('can:admin-only');
-        Route::get('{id}', [ProductController::class, 'show']);
-        Route::put('{id}', [ProductController::class, 'update'])->middleware('can:admin-only');
-        Route::delete('{id}', [ProductController::class, 'destroy'])->middleware('can:admin-only');
+Route::prefix('products')->group(function () {
+    Route::get('/{product}/stock', [ProductController::class, 'stock']);
+    Route::post('/{product}/reserve', [ProductController::class, 'reserveStock']);
+    Route::post('/{product}/release', [ProductController::class, 'releaseStock']);
+    Route::get('/low-stock', [ProductController::class, 'lowStock']);
+});
 
-        Route::get('{id}/stock', [ProductStockController::class, 'stock']);
-        Route::post('{id}/reserve', [ProductStockController::class, 'reserve']);
-        Route::post('{id}/release', [ProductStockController::class, 'release']);
-
-        Route::get('low-stock', [ProductController::class, 'lowStock']);
+           //Order
+        Route::prefix('v1')->middleware(['auth:sanctum'])->group(function () {
+    Route::prefix('orders')->group(function () {
+        Route::get('/', [OrderController::class, 'index']); // GET /api/v1/orders
+        Route::get('{id}', [OrderController::class, 'show']); // GET /api/v1/orders/{id}
+        Route::post('/', [OrderController::class, 'store']); // POST /api/v1/orders
+        Route::put('{id}/status', [OrderController::class, 'updateStatus']); // PUT /api/v1/orders/{id}/status
+        Route::get('{id}/invoice', [OrderController::class, 'invoice']); // GET /api/v1/orders/{id}/invoice
+        Route::post('/calculate-total', [OrderController::class, 'calculateTotal']); // POST /api/v1/orders/calculate-total
     });
 });
 

@@ -2,7 +2,15 @@
 
 namespace App\Providers;
 
+use App\Observers\NotificationObserver;
+use Illuminate\Notifications\Notification;
 use Illuminate\Support\ServiceProvider;
+use App\Models\Product;
+use App\Models\Inventory;
+use App\Models\User;
+use App\Observers\ProductObserver;
+use App\Observers\InventoryObserver;
+use App\Observers\UserObserver;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -20,5 +28,9 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         //
+        Product::observe(ProductObserver::class);
+        Inventory::observe(InventoryObserver::class);
+        User::observe(UserObserver::class);
+      
     }
 }
