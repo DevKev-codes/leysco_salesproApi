@@ -10,6 +10,17 @@ use Illuminate\Support\Facades\Route;
 
 class RouteServiceProvider extends ServiceProvider
 {
+    protected function configureRateLimiting(): void
+{
+    RateLimiter::for('api', function (Request $request) {
+        return Limit::perMinute(60)->by(optional($request->user())->id ?: $request->ip());
+    });
+
+    // 👉 Add this custom limiter for customer endpoints
+    RateLimiter::for('customer-api', function (Request $request) {
+        return Limit::perMinute(30)->by(optional($request->user())->id ?: $request->ip());
+    });
+}
     /**
      * The path to your application's "home" route.
      *

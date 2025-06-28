@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\V1\DashboardController;
 use App\Http\Controllers\Api\V1\ProductController;
 use App\Http\Controllers\Api\V1\OrderController;
 use App\Http\Controllers\V1\CustomerController;
+use App\Http\Controllers\V1\WarehouseController;
 
 
 // --- Authorization ---
@@ -53,8 +54,10 @@ Route::prefix('v1')->group(function () {
 
     });
     //Customers
-    Route::prefix('v1')->middleware(['auth:sanctum', 'log.api'])->group(function () {
-    Route::prefix('customers')->group(function () {
+ 
+
+Route::prefix('v1')->middleware(['auth:sanctum', 'log.api'])->group(function () {
+    Route::prefix('customers')->middleware('throttle:customer-api')->group(function () {
         Route::get('/', [CustomerController::class, 'index']);
         Route::get('/map-data', [CustomerController::class, 'mapData']);
         Route::get('{id}', [CustomerController::class, 'show']);
@@ -64,7 +67,17 @@ Route::prefix('v1')->group(function () {
         Route::get('{id}/orders', [CustomerController::class, 'orderHistory']);
         Route::get('{id}/credit-status', [CustomerController::class, 'creditStatus']);
     });
-    });
+});
+
+
+
+   
+
+    Route::prefix('v1')->middleware(['auth:sanctum', 'log.api'])->group(function () {
+         Route::get('warehouses', [WarehouseController::class, 'index']);
+         Route::get('warehouses/{id}/inventory', [WarehouseController::class, 'inventory']);
+});
+
 });
 
 
