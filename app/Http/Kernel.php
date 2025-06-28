@@ -67,6 +67,7 @@ class Kernel extends HttpKernel
         // Register your custom role middleware if used
         'role' => \App\Http\Middleware\RoleMiddleware::class,
         'log.api' => \App\Http\Middleware\LogApiActivity::class,
+        'check.credit' => \App\Http\Middleware\CheckCreditLimit::class,
 
     ];
 }
