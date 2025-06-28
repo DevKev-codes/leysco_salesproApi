@@ -66,6 +66,8 @@ class Kernel extends HttpKernel
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
         // Register your custom role middleware if used
         'role' => \App\Http\Middleware\RoleMiddleware::class,
+        'log.api' => \App\Http\Middleware\LogApiActivity::class,
+
     ];
 }
 
