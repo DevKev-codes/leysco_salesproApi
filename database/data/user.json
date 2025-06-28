@@ -1,0 +1,22 @@
+[
+  {
+    "username": "LEYS-1001",
+    "email": "david.kariuki@leysco.co.ke",
+    "password": "SecurePass123!",
+    "first_name": "David",
+    "last_name": "Kariuki",
+    "role": "Sales Manager",
+    "permissions": ["view_all_sales", "create_sales", "approve_sales", "manage_inventory"],
+    "status": "active"
+  },
+  {
+    "username": "LEYS-1002",
+    "email": "jane.njoki@leysco.co.ke",
+    "password": "SecurePass456!",
+    "first_name": "Jane",
+    "last_name": "Njoki",
+    "role": "Sales Representative",
+    "permissions": ["view_own_sales", "create_sales", "view_inventory"],
+    "status": "active"
+  }
+]
