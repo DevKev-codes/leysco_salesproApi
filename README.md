@@ -96,5 +96,61 @@ To run tests:
 php artisan test
 
 
+
+📁 1. Folder Structure
+tests/postman/LeyscoSalesPro_Complete_WithModules.postman_collection.json
+This file should include all modules:
+
+🧾 Authentication
+
+🛒 Orders
+
+📊 Dashboard Analytics
+
+🏬 Warehouses
+
+📦 Inventory
+
+👤 Customers
+
+🔔 Notifications
+
+
+# LeyscoSalesPro API - Postman Collection
+
+This directory contains the complete Postman collection for testing the LeyscoSalesPro Laravel backend.
+
+## 📘 Modules Included
+
+- ✅ Authentication (Login, Logout, Password Reset)
+- ✅ Orders (Create, Status Update, Invoicing)
+- ✅ Dashboard Analytics (Summary, Top Products, Inventory)
+- ✅ Warehouses (Listing, Inventory, Transfers)
+- ✅ Inventory (Stock, Reservations, Alerts)
+- ✅ Customers (CRUD, Credit, Map Data)
+- ✅ Notifications (Unread, Mark as Read, Delete)
+
+## 🚀 How to Use
+
+1. Open [Postman](https://www.postman.com/)
+2. Click **Import**
+3. Choose the file:  
+   `tests/postman/LeyscoSalesPro_Complete_WithModules.postman_collection.json`
+4. Set your environment variables if needed:
+   - `BASE_URL` → e.g. `http://127.0.0.1:8000/api/v1`
+   - `TOKEN` → (Sanctum access token)
+5. Test each module using the provided request folders.
+
+## 🌐 Base URL
+
+http://127.0.0.1:8000/api/v1
+
+Make sure your local server is running with `php artisan serve`.
+
+---
+
+### ✅ Done!
+
+
 📄 License
 This project is licensed under the MIT License.
