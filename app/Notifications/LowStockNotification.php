@@ -24,7 +24,7 @@ class LowStockNotification extends Notification implements ShouldQueue
 
     public function via($notifiable)
     {
-        return ['mail']; // you can add 'database', 'slack', etc. as needed
+        return ['mail']; 
     }
 
     public function toMail($notifiable)
