@@ -33,7 +33,7 @@ This is a Laravel-based RESTful API for managing orders, products, customers, wa
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/your-username/leysco_salesproapi.git
+git clone https://github.com/DevKev-codes/leysco_salesproapi.git
 cd leysco_salesproapi
 2. Install Dependencies
 
